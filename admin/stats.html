@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KinoBot Admin — Statistika</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <h2>🎬 KinoBot</h2>
+      <a href="index.html" data-page="dashboard">📊 Dashboard</a>
+      <a href="movies.html" data-page="movies">🎬 Filmlar</a>
+      <a href="#" data-page="series">📺 Seriallar</a>
+      <a href="#" data-page="users">👥 Foydalanuvchilar</a>
+      <a href="#" data-page="channel">📢 Kanal</a>
+      <a href="stats.html" class="active" data-page="stats">📈 Statistika</a>
+      <a href="#" data-page="settings">⚙️ Sozlamalar</a>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-header">
+        <h1>📈 Statistika</h1>
+        <button class="logout-link" id="logout-btn">Chiqish (<span id="admin-name">...</span>)</button>
+      </div>
+
+      <div class="chart-card">
+        <h3>👥 Foydalanuvchilar o'sishi (oxirgi 14 kun)</h3>
+        <canvas id="growth-chart"></canvas>
+      </div>
+
+      <div class="chart-card">
+        <h3>👁 Eng ko'p ko'rilgan filmlar</h3>
+        <canvas id="top-viewed-chart"></canvas>
+        <div class="empty-state hidden" id="top-viewed-empty">😕 Hozircha ko'rishlar mavjud emas.</div>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+  <script src="stats.js"></script>
+</body>
+</html>

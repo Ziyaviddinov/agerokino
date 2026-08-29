@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KinoBot Admin — Filmlar</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <h2>🎬 KinoBot</h2>
+      <a href="index.html" data-page="dashboard">📊 Dashboard</a>
+      <a href="movies.html" class="active" data-page="movies">🎬 Filmlar</a>
+      <a href="#" data-page="series">📺 Seriallar</a>
+      <a href="#" data-page="users">👥 Foydalanuvchilar</a>
+      <a href="#" data-page="channel">📢 Kanal</a>
+      <a href="stats.html" data-page="stats">📈 Statistika</a>
+      <a href="#" data-page="settings">⚙️ Sozlamalar</a>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-header">
+        <h1>🎬 Filmlar</h1>
+        <button class="logout-link" id="logout-btn">Chiqish (<span id="admin-name">...</span>)</button>
+      </div>
+
+      <div class="toolbar">
+        <input type="text" id="search-input" placeholder="Nom bo'yicha qidirish..." />
+        <select id="type-filter">
+          <option value="">Barcha turlar</option>
+          <option value="movie">Filmlar</option>
+          <option value="series">Seriallar</option>
+        </select>
+        <button class="btn btn-inline" id="add-movie-btn" style="margin-left:auto;">➕ Film qo'shish</button>
+      </div>
+
+      <div id="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nomi</th>
+              <th>Yil</th>
+              <th>Janr</th>
+              <th>Reyting</th>
+              <th>Turi</th>
+              <th>Holati</th>
+              <th>Amallar</th>
+            </tr>
+          </thead>
+          <tbody id="movies-tbody">
+            <!-- JS orqali to'ldiriladi -->
+          </tbody>
+        </table>
+        <div class="empty-state hidden" id="empty-state">😕 Hech qanday film topilmadi.</div>
+      </div>
+
+      <div class="pagination" id="pagination"></div>
+    </main>
+  </div>
+
+  <!-- Film qo'shish / tahrirlash modali -->
+  <div class="modal-overlay hidden" id="movie-modal-overlay">
+    <div class="modal">
+      <h2 id="modal-title">➕ Film qo'shish</h2>
+      <form id="movie-form">
+        <input type="hidden" id="movie-id" />
+
+        <div class="field">
+          <label>Film nomi *</label>
+          <input type="text" id="f-title" required maxlength="200" />
+        </div>
+
+        <div class="field">
+          <label>Alternative nomi</label>
+          <input type="text" id="f-alt-title" maxlength="200" />
+        </div>
+
+        <div class="field field-row">
+          <div>
+            <label>Yili</label>
+            <input type="number" id="f-year" min="1888" max="2100" />
+          </div>
+          <div>
+            <label>Turi</label>
+            <select id="f-type">
+              <option value="movie">Movie</option>
+              <option value="series">Series</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Janri (vergul bilan, masalan: Action, Drama)</label>
+          <input type="text" id="f-genre" />
+        </div>
+
+        <div class="field field-row">
+          <div>
+            <label>Reytingi (0–10)</label>
+            <input type="number" id="f-rating" min="0" max="10" step="0.1" />
+          </div>
+          <div>
+            <label>Davomiyligi (daqiqa)</label>
+            <input type="number" id="f-duration" min="0" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Poster URL</label>
+          <input type="text" id="f-poster" />
+        </div>
+
+        <div class="field">
+          <label>Treyler URL</label>
+          <input type="text" id="f-trailer" />
+        </div>
+
+        <div class="field">
+          <label>Qonuniy tomosha URL</label>
+          <input type="text" id="f-watch" />
+        </div>
+
+        <div class="field">
+          <label>Tavsif</label>
+          <textarea id="f-description"></textarea>
+        </div>
+
+        <div class="error-text" id="modal-error"></div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="modal-cancel-btn">Bekor qilish</button>
+          <button type="submit" class="btn" id="modal-save-btn">💾 Saqlash</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- O'chirish tasdiqlash modali -->
+  <div class="modal-overlay hidden" id="delete-modal-overlay">
+    <div class="modal" style="max-width: 360px; text-align: center;">
+      <h2>⚠️ Rostdan ham bu filmni o'chirmoqchimisiz?</h2>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="delete-cancel-btn">BEKOR</button>
+        <button class="btn btn-danger" id="delete-confirm-btn">HA</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="movies.js"></script>
+</body>
+</html>

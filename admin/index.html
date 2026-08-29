@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KinoBot Admin — Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <h2>🎬 KinoBot</h2>
+      <a href="index.html" class="active" data-page="dashboard">📊 Dashboard</a>
+      <a href="movies.html" data-page="movies">🎬 Filmlar</a>
+      <a href="#" data-page="series">📺 Seriallar</a>
+      <a href="#" data-page="users">👥 Foydalanuvchilar</a>
+      <a href="#" data-page="channel">📢 Kanal</a>
+      <a href="stats.html" data-page="stats">📈 Statistika</a>
+      <a href="#" data-page="settings">⚙️ Sozlamalar</a>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-header">
+        <h1>📊 Dashboard</h1>
+        <button class="logout-link" id="logout-btn">Chiqish (<span id="admin-name">...</span>)</button>
+      </div>
+
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-label">👥 Jami foydalanuvchilar</div><div class="stat-value" id="stat-total-users">—</div></div>
+        <div class="stat-card"><div class="stat-label">🟢 Bugungi foydalanuvchilar</div><div class="stat-value" id="stat-today-users">—</div></div>
+        <div class="stat-card"><div class="stat-label">🎬 Jami filmlar</div><div class="stat-value" id="stat-total-movies">—</div></div>
+        <div class="stat-card"><div class="stat-label">📺 Jami seriallar</div><div class="stat-value" id="stat-total-series">—</div></div>
+        <div class="stat-card"><div class="stat-label">🔎 Bugungi qidiruvlar</div><div class="stat-value" id="stat-today-searches">—</div></div>
+        <div class="stat-card"><div class="stat-label">❤️ Sevimlilar soni</div><div class="stat-value" id="stat-total-favorites">—</div></div>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
