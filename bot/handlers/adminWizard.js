@@ -40,12 +40,6 @@ function validateAddData(rawData) {
     clean.year = null;
   }
 
-  clean.rating = 0;
-  clean.duration = null;
-  clean.description = null;
-  clean.alternative_title = null;
-  clean.watch_url = null;
-
   return { errors, clean };
 }
 
