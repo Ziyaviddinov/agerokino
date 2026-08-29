@@ -6,9 +6,14 @@ const { isAwaitingSearch, clearAwaitingSearch } = require('../state/searchState'
 const movieService = require('../../services/movieService');
 const userService = require('../../services/userService');
 const { movieResultsKeyboard } = require('../keyboards/movie');
+const { handleAdminWizardText } = require('./adminWizard');
 
 async function textHandler(ctx) {
   const telegramId = ctx.from.id;
+
+  // Admin "film qo'shish/tahrirlash" jarayonida bo'lsa, shu yerda tugaydi.
+  const handledByAdminWizard = await handleAdminWizardText(ctx);
+  if (handledByAdminWizard) return;
 
   if (isAwaitingSearch(telegramId)) {
     clearAwaitingSearch(telegramId);
