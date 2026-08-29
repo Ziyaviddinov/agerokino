@@ -12,7 +12,11 @@ const genresCommand = require('./commands/genres');
 const favoritesCommand = require('./commands/favorites');
 const topCommand = require('./commands/top');
 const newMoviesCommand = require('./commands/newMovies');
+const adminCommand = require('./commands/admin');
+const addAdminCommand = require('./commands/addAdmin');
+const removeAdminCommand = require('./commands/removeAdmin');
 const registerCallbacks = require('./handlers/callbacks');
+const registerAdminCallbacks = require('./handlers/adminCallbacks');
 const textHandler = require('./handlers/messages');
 const floodProtection = require('./middleware/floodProtection');
 
@@ -23,8 +27,14 @@ bot.use(floodProtection());
 bot.start(startCommand);
 bot.help(helpCommand);
 
+// ------- Admin komandalar -------
+bot.command('admin', adminCommand);
+bot.command('addadmin', addAdminCommand);
+bot.command('removeadmin', removeAdminCommand);
+
 // ------- Inline tugmalar (callback_query) -------
 registerCallbacks(bot);
+registerAdminCallbacks(bot);
 
 // ------- Reply-menyu tugmalari (matn orqali keladi) -------
 bot.hears('ℹ️ Yordam', helpCommand);

@@ -101,6 +101,22 @@ CREATE TABLE IF NOT EXISTS admins (
 );
 
 -- ------------------------------------------------------------
+-- 5b. BOT_ADMINS — Telegram ID orqali botni boshqaradigan adminlar
+--     (web admin panel uchun ishlatiladigan "admins" jadvalidan alohida)
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS bot_admins (
+  id BIGSERIAL PRIMARY KEY,
+  telegram_id BIGINT NOT NULL UNIQUE,
+  username TEXT,
+  role TEXT NOT NULL DEFAULT 'ADMIN'
+    CHECK (role IN ('SUPER_ADMIN', 'ADMIN', 'EDITOR')),
+  added_by BIGINT,                            -- kim qo'shgani (telegram_id)
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_bot_admins_telegram_id ON bot_admins(telegram_id);
+
+-- ------------------------------------------------------------
 -- 6. SEARCHES — qidiruv statistikasi uchun
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS searches (
