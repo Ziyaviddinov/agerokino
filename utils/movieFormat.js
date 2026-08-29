@@ -7,6 +7,8 @@ function formatMovieCaption(movie) {
   const lines = [`${icon} ${movie.title.toUpperCase()}`, ''];
 
   if (movie.year) lines.push(`📅 Yil: ${movie.year}`);
+  if (movie.country) lines.push(`🌍 Davlat: ${movie.country}`);
+  if (movie.language) lines.push(`🗣 Til: ${movie.language}`);
   if (movie.rating) lines.push(`⭐️ Reyting: ${movie.rating}`);
   if (movie.genre) lines.push(`🎭 Janr: ${movie.genre}`);
   if (movie.type !== 'series' && movie.duration) {
@@ -18,6 +20,14 @@ function formatMovieCaption(movie) {
     lines.push('📝 Qisqacha:');
     lines.push(movie.description);
   }
+
+  if (movie.hashtags) {
+    lines.push('');
+    lines.push(movie.hashtags);
+  }
+
+  lines.push('');
+  lines.push(`🔑 Kino kodi: ${movie.id}`);
 
   return lines.join('\n');
 }

@@ -43,6 +43,9 @@ CREATE TABLE IF NOT EXISTS movies (
   poster_url TEXT,
   trailer_url TEXT,
   watch_url TEXT,                            -- QONUNIY tomosha manbasiga havola
+  country TEXT,                              -- masalan: Yaponiya, AQSH
+  language TEXT,                             -- masalan: o'zbek tilida, subtitr
+  hashtags TEXT,                             -- masalan: #drama #2024
   type TEXT NOT NULL DEFAULT 'movie'
     CHECK (type IN ('movie', 'series')),
   is_published BOOLEAN NOT NULL DEFAULT true, -- admin "Hide" qilsa false bo'ladi

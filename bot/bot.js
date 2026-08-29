@@ -18,6 +18,7 @@ const removeAdminCommand = require('./commands/removeAdmin');
 const registerCallbacks = require('./handlers/callbacks');
 const registerAdminCallbacks = require('./handlers/adminCallbacks');
 const textHandler = require('./handlers/messages');
+const { handleAdminWizardPhoto } = require('./handlers/adminWizard');
 const floodProtection = require('./middleware/floodProtection');
 
 // ------- Global middleware -------
@@ -54,6 +55,7 @@ bot.hears(
 
 // ------- Boshqa barcha matn xabarlar (qidiruv oqimi shu yerda ishlaydi) -------
 bot.on('text', textHandler);
+bot.on('photo', handleAdminWizardPhoto);
 
 // ------- Global xatolarni ushlash -------
 // Bot foydalanuvchiga texnik xato (Error 500, TypeError...) ko'rsatmaydi.

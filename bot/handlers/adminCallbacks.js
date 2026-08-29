@@ -7,8 +7,6 @@ const movieService = require('../../services/movieService');
 const {
   startAddWizard,
   startEditFieldWizard,
-  getWizard,
-  clearWizard,
 } = require('../state/adminWizardState');
 const { formatMovieCaption } = require('../../utils/movieFormat');
 
@@ -16,14 +14,14 @@ const PAGE_SIZE = 10;
 
 const EDIT_FIELDS = [
   { field: 'title', label: '✏️ Nomi', prompt: '🎬 Yangi nomni yozing:' },
+  { field: 'country', label: '🌍 Davlati', prompt: '🌍 Yangi davlatni yozing:' },
+  { field: 'language', label: '🗣 Tili', prompt: '🗣 Yangi tilni yozing:' },
   { field: 'year', label: '📅 Yili', prompt: '📅 Yangi yilni yozing:' },
   { field: 'genre', label: '🎭 Janri', prompt: '🎭 Yangi janrni yozing:' },
-  { field: 'rating', label: '⭐️ Reyting', prompt: '⭐️ Yangi reytingni yozing (0-10):' },
-  { field: 'duration', label: '⏱ Davomiylik', prompt: '⏱ Yangi davomiylikni daqiqada yozing:' },
+  { field: 'hashtags', label: '# Hesh teglar', prompt: '# Yangi hesh teglarni yozing:' },
+  { field: 'trailer_url', label: '🎞 Treyler', prompt: '🎞 Yangi treyler havolasini yuboring:' },
+  { field: 'poster_url', label: '🖼 Poster', prompt: '🖼 Yangi rasmni yuboring:' },
   { field: 'description', label: '📝 Tavsif', prompt: '📝 Yangi tavsifni yozing:' },
-  { field: 'poster_url', label: '🖼 Poster', prompt: '🖼 Yangi poster URL yozing:' },
-  { field: 'trailer_url', label: '🎞 Treyler', prompt: '🎞 Yangi treyler URL yozing:' },
-  { field: 'watch_url', label: '🔗 Watch URL', prompt: '🔗 Yangi tomosha URL yozing:' },
 ];
 
 function formatAdminsList(admins, ownerId) {
@@ -175,7 +173,12 @@ function registerAdminCallbacks(bot) {
 
       const movieId = parseInt(ctx.match[1], 10);
       startEditFieldWizard(ctx.from.id, movieId, f.field, f.prompt);
-      await ctx.reply(f.prompt + '\n\n(bo\'sh qilish uchun "-" yozing)');
+
+      if (f.field === 'poster_url') {
+        await ctx.reply(f.prompt);
+      } else {
+        await ctx.reply(f.prompt + '\n\n(bo\'sh qilish uchun "-" yozing)');
+      }
     });
   });
 
@@ -232,34 +235,6 @@ function registerAdminCallbacks(bot) {
     const firstStep = startAddWizard(ctx.from.id);
     await ctx.reply(firstStep.prompt);
   });
-
-  async function finalizeAddMovie(ctx, type) {
-    const wizard = getWizard(ctx.from.id);
-    if (!wizard || wizard.mode !== 'add_await_type') {
-      await ctx.answerCbQuery('😕 Jarayon topilmadi. Qaytadan /admin ni bosing.', { show_alert: true });
-      return;
-    }
-
-    await ctx.answerCbQuery();
-
-    const movieData = { ...wizard.finalData, type };
-    const created = await movieService.createMovie(movieData);
-    clearWizard(ctx.from.id);
-
-    if (!created) {
-      await ctx.editMessageText('😕 Film qo\'shishda xatolik yuz berdi.').catch(() => {});
-      return;
-    }
-
-    await ctx.editMessageText(`✅ Film muvaffaqiyatli qo'shildi!\n\n${formatMovieCaption(created)}`).catch(
-      async () => {
-        await ctx.reply(`✅ Film muvaffaqiyatli qo'shildi!\n\n${formatMovieCaption(created)}`);
-      }
-    );
-  }
-
-  bot.action('admin_type_movie', (ctx) => finalizeAddMovie(ctx, 'movie'));
-  bot.action('admin_type_series', (ctx) => finalizeAddMovie(ctx, 'series'));
 
   bot.action('admin_menu_back', async (ctx) => {
     const role = await requireAdmin(ctx);

@@ -1,11 +1,16 @@
 // Admin "film qo'shish" yoki "bitta maydonni tahrirlash" jarayonida
-// kelgan matn xabarlarni qayta ishlaydi. messages.js bu yerga
-// yo'naltiradi (agar foydalanuvchi wizard holatida bo'lsa).
+// kelgan matn va rasm xabarlarni qayta ishlaydi. messages.js (matn) va
+// bot.js (rasm) shu yerga yo'naltiradi.
 
 const { Markup } = require('telegraf');
-const { getWizard, clearWizard, advanceAddWizard } = require('../state/adminWizardState');
+const {
+  ADD_STEPS,
+  getWizard,
+  clearWizard,
+  advanceAddWizard,
+  setPosterAndFinish,
+} = require('../state/adminWizardState');
 const movieService = require('../../services/movieService');
-const logger = require('../../utils/logger');
 
 const NUMERIC_FIELDS = ['year', 'rating', 'duration'];
 
@@ -14,16 +19,15 @@ function validateAddData(rawData) {
   const clean = {};
 
   const title = (rawData.title || '').toString().trim();
-  if (!title) errors.push('Film nomi bo\'sh bo\'lishi mumkin emas.');
-  if (title.length > 200) errors.push('Film nomi juda uzun (200 belgidan kam bo\'lsin).');
+  if (!title) errors.push('Kino nomi bo\'sh bo\'lishi mumkin emas.');
+  if (title.length > 200) errors.push('Kino nomi juda uzun (200 belgidan kam bo\'lsin).');
   clean.title = title;
 
-  clean.alternative_title = rawData.alternative_title ? rawData.alternative_title.trim() : null;
-  clean.description = rawData.description ? rawData.description.trim() : null;
+  clean.country = rawData.country ? rawData.country.trim() : null;
+  clean.language = rawData.language ? rawData.language.trim() : null;
   clean.genre = rawData.genre ? rawData.genre.trim() : null;
-  clean.poster_url = rawData.poster_url ? rawData.poster_url.trim() : null;
+  clean.hashtags = rawData.hashtags ? rawData.hashtags.trim() : null;
   clean.trailer_url = rawData.trailer_url ? rawData.trailer_url.trim() : null;
-  clean.watch_url = rawData.watch_url ? rawData.watch_url.trim() : null;
 
   if (rawData.year) {
     const year = parseInt(rawData.year, 10);
@@ -36,34 +40,18 @@ function validateAddData(rawData) {
     clean.year = null;
   }
 
-  if (rawData.rating) {
-    const rating = parseFloat(rawData.rating);
-    if (Number.isNaN(rating) || rating < 0 || rating > 10) {
-      errors.push('Reyting 0 dan 10 gacha bo\'lishi kerak.');
-    } else {
-      clean.rating = rating;
-    }
-  } else {
-    clean.rating = 0;
-  }
-
-  if (rawData.duration) {
-    const duration = parseInt(rawData.duration, 10);
-    if (Number.isNaN(duration) || duration < 0 || duration > 1000) {
-      errors.push('Davomiylik noto\'g\'ri.');
-    } else {
-      clean.duration = duration;
-    }
-  } else {
-    clean.duration = null;
-  }
+  clean.rating = 0;
+  clean.duration = null;
+  clean.description = null;
+  clean.alternative_title = null;
+  clean.watch_url = null;
 
   return { errors, clean };
 }
 
 /**
  * Wizard matn xabarini qayta ishlaydi.
- * @returns {boolean} true bo'lsa — xabar shu yerda "ishlatildi" (boshqa handlerga o'tmasin)
+ * @returns {boolean} true bo'lsa — xabar shu yerda "ishlatildi"
  */
 async function handleAdminWizardText(ctx) {
   const telegramId = ctx.from.id;
@@ -72,9 +60,9 @@ async function handleAdminWizardText(ctx) {
 
   const text = (ctx.message.text || '').trim();
 
-  // ---------- ADD WIZARD ----------
+  // ---------- ADD WIZARD: matn bosqichlari ----------
   if (wizard.mode === 'add') {
-    const currentField = require('../state/adminWizardState').ADD_STEPS[wizard.stepIndex].field;
+    const currentField = ADD_STEPS[wizard.stepIndex].field;
     const result = advanceAddWizard(telegramId, currentField, text);
 
     if (!result.done) {
@@ -82,25 +70,14 @@ async function handleAdminWizardText(ctx) {
       return true;
     }
 
-    // Barcha savollar tugadi — validatsiya va turi so'raladi.
-    const { errors, clean } = validateAddData(result.data);
-    if (errors.length > 0) {
-      clearWizard(telegramId);
-      await ctx.reply(`😕 Xatolik:\n${errors.join('\n')}\n\nQaytadan boshlash uchun /admin ni bosing.`);
-      return true;
-    }
+    // Matn bosqichlari tugadi — endi poster (rasm) so'raladi.
+    await ctx.reply('🖼 Rasmini yuboring:');
+    return true;
+  }
 
-    // Turini vaqtincha saqlaymiz, tugmalar orqali tanlanadi.
-    wizard.mode = 'add_await_type';
-    wizard.finalData = clean;
-
-    await ctx.reply(
-      'Turini tanlang:',
-      Markup.inlineKeyboard([
-        [Markup.button.callback('🎬 Movie', 'admin_type_movie')],
-        [Markup.button.callback('📺 Series', 'admin_type_series')],
-      ])
-    );
+  // ---------- ADD WIZARD: poster kutilmoqda, lekin matn kelsa ----------
+  if (wizard.mode === 'add_await_poster') {
+    await ctx.reply('🖼 Iltimos, rasm yuboring (fayl sifatida emas, oddiy rasm sifatida).');
     return true;
   }
 
@@ -133,4 +110,67 @@ async function handleAdminWizardText(ctx) {
   return false;
 }
 
-module.exports = { handleAdminWizardText, validateAddData };
+/**
+ * Wizard rasm (photo) xabarini qayta ishlaydi — poster yuklash bosqichi.
+ * @returns {boolean} true bo'lsa — xabar shu yerda "ishlatildi"
+ */
+async function handleAdminWizardPhoto(ctx) {
+  const telegramId = ctx.from.id;
+  const wizard = getWizard(telegramId);
+  if (!wizard) return false;
+
+  // Faqat "poster kutilmoqda" holatida ishlaydi.
+  if (wizard.mode !== 'add_await_poster' && wizard.mode !== 'edit_field') return false;
+
+  const photos = ctx.message.photo;
+  if (!photos || photos.length === 0) return false;
+
+  // Eng sifatli (oxirgi, eng katta o'lchamli) versiyasini olamiz.
+  const fileId = photos[photos.length - 1].file_id;
+  const fileLink = await ctx.telegram.getFileLink(fileId);
+  const posterUrl = fileLink.href;
+
+  // ---------- YANGI FILM QO'SHISHDA POSTER ----------
+  if (wizard.mode === 'add_await_poster') {
+    const data = setPosterAndFinish(telegramId, posterUrl);
+    const { errors, clean } = validateAddData(data);
+
+    if (errors.length > 0) {
+      clearWizard(telegramId);
+      await ctx.reply(`😕 Xatolik:\n${errors.join('\n')}\n\nQaytadan boshlash uchun /admin ni bosing.`);
+      return true;
+    }
+
+    clean.poster_url = posterUrl;
+    const created = await movieService.createMovie({ ...clean, type: 'movie' });
+    clearWizard(telegramId);
+
+    if (!created) {
+      await ctx.reply('😕 Kino qo\'shishda xatolik yuz berdi.');
+      return true;
+    }
+
+    await ctx.reply(
+      `✅ Kino qo'shildi!\n\n🎬 ${created.title}\n🌍 ${created.country || '—'}\n🗣 ${created.language || '—'}\n📅 ${created.year || '—'}\n🎭 ${created.genre || '—'}\n\n🔑 Kino kodi: ${created.id}\n\nFoydalanuvchilar botga shu kodni yuborsa, kino chiqadi.`
+    );
+    return true;
+  }
+
+  // ---------- MAVJUD FILMNING POSTERINI TAHRIRLASH ----------
+  if (wizard.mode === 'edit_field' && wizard.field === 'poster_url') {
+    const updated = await movieService.updateMovie(wizard.movieId, { poster_url: posterUrl });
+    clearWizard(telegramId);
+
+    if (!updated) {
+      await ctx.reply('😕 Yangilashda xatolik yuz berdi.');
+      return true;
+    }
+
+    await ctx.reply('✅ Poster yangilandi.');
+    return true;
+  }
+
+  return false;
+}
+
+module.exports = { handleAdminWizardText, handleAdminWizardPhoto, validateAddData };

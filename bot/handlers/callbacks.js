@@ -12,6 +12,7 @@ const movieService = require('../../services/movieService');
 const genreService = require('../../services/genreService');
 const favoriteService = require('../../services/favoriteService');
 const userService = require('../../services/userService');
+const { sendMovieDetail } = require('./movieDetail');
 const logger = require('../../utils/logger');
 
 const WELCOME_TEXT =
@@ -50,32 +51,7 @@ function registerCallbacks(bot) {
     }
 
     await ctx.answerCbQuery();
-
-    // Ko'rishni statistika uchun yozib qo'yamiz (xato bo'lsa ham sahifa ko'rsatiladi).
-    const user = await userService.findByTelegramId(ctx.from.id);
-    await movieService.logView(user ? user.id : null, movie.id);
-
-    const isFav = user ? await favoriteService.isFavorite(user.id, movie.id) : false;
-
-    const caption = formatMovieCaption(movie);
-    const keyboard = movieDetailKeyboard(movie, isFav);
-
-    if (movie.poster_url) {
-      try {
-        if (caption.length <= CAPTION_LIMIT) {
-          await ctx.replyWithPhoto(movie.poster_url, { caption, ...keyboard });
-        } else {
-          // Caption juda uzun bo'lsa, avval rasm, keyin matn alohida yuboriladi.
-          await ctx.replyWithPhoto(movie.poster_url);
-          await ctx.reply(caption, keyboard);
-        }
-        return;
-      } catch (error) {
-        logger.warn(`Poster yuborilmadi (movie ${movie.id}), o'rniga matn yuborildi.`);
-      }
-    }
-
-    await ctx.reply(caption, keyboard);
+    await sendMovieDetail(ctx, movie);
   });
 
   // "⬅️ Orqaga" — asosiy menyuga qaytaradi.

@@ -4,18 +4,17 @@
 
 const wizards = new Map();
 
-// ADD wizard uchun maydonlar ketma-ketligi. Har biri: { field, prompt, optional }
+// ADD wizard uchun matn orqali so'raladigan maydonlar ketma-ketligi.
+// DIQQAT: "poster" alohida — u matn emas, RASM sifatida yuboriladi,
+// shuning uchun bu ro'yxatda emas, adminWizard.js'da alohida boshqariladi.
 const ADD_STEPS = [
-  { field: 'title', prompt: '🎬 Film nomini yozing:', optional: false },
-  { field: 'alternative_title', prompt: '🔤 Alternativ nomi (bo\'lmasa "-" yozing):', optional: true },
-  { field: 'year', prompt: '📅 Yilini yozing (masalan 2024):', optional: true },
-  { field: 'genre', prompt: '🎭 Janrini yozing (masalan: Action, Drama):', optional: true },
-  { field: 'rating', prompt: '⭐️ Reytingini yozing (0-10, masalan 7.8):', optional: true },
-  { field: 'duration', prompt: '⏱ Davomiyligini daqiqada yozing (masalan 120):', optional: true },
-  { field: 'poster_url', prompt: '🖼 Poster URL manzilini yozing (bo\'lmasa "-"):', optional: true },
-  { field: 'description', prompt: '📝 Qisqacha tavsifini yozing (bo\'lmasa "-"):', optional: true },
-  { field: 'trailer_url', prompt: '🎞 Treyler URL manzilini yozing (bo\'lmasa "-"):', optional: true },
-  { field: 'watch_url', prompt: '🔗 Qonuniy tomosha URL manzilini yozing (bo\'lmasa "-"):', optional: true },
+  { field: 'title', prompt: '🎬 Kino nomini yozing:', optional: false },
+  { field: 'country', prompt: '🌍 Qaysi davlat ishlab chiqarganini yozing:', optional: true },
+  { field: 'language', prompt: '🗣 Qaysi tilda ekanligini yozing:', optional: true },
+  { field: 'year', prompt: '📅 Qaysi yilda ishlab chiqarilganini yozing:', optional: true },
+  { field: 'genre', prompt: '🎭 Janrlarini yozing (masalan: Drama, Fantastika):', optional: true },
+  { field: 'hashtags', prompt: '# Hesh teglar yuboring (masalan: #drama #2024):', optional: true },
+  { field: 'trailer_url', prompt: '🎞 Treyler havolasini yuboring (Instagram/YouTube):', optional: true },
 ];
 
 function startAddWizard(telegramId) {
@@ -47,11 +46,21 @@ function advanceAddWizard(telegramId, field, rawValue) {
   wizard.stepIndex += 1;
 
   if (wizard.stepIndex >= ADD_STEPS.length) {
+    // Matn bosqichlari tugadi — endi poster rasmi so'raladi.
+    wizard.mode = 'add_await_poster';
     return { done: true, data: wizard.data };
   }
 
   const next = ADD_STEPS[wizard.stepIndex];
   return { done: false, nextPrompt: next.prompt, field: next.field };
+}
+
+function setPosterAndFinish(telegramId, posterUrl) {
+  const wizard = wizards.get(telegramId);
+  if (!wizard || wizard.mode !== 'add_await_poster') return null;
+  wizard.data.poster_url = posterUrl;
+  wizard.mode = 'add_ready';
+  return wizard.data;
 }
 
 module.exports = {
@@ -61,4 +70,5 @@ module.exports = {
   getWizard,
   clearWizard,
   advanceAddWizard,
+  setPosterAndFinish,
 };
